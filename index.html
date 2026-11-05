@@ -77,17 +77,66 @@ strong { font-weight: 600; }
 .prose { max-width: 40rem; display: flex; flex-direction: column; gap: 1rem; }
 .prose p { color: var(--ink); }
 
-/* Kopfzeile */
-.top { border-bottom: 1px solid var(--rule); }
-.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.9rem; }
-.skip { position: absolute; left: 16px; top: -4rem; z-index: 10; padding: 0.7rem 1rem; background: var(--pen); color: var(--paper); }
+/* Kopfzeile: bleibt oben stehen. Der blaue Block gleitet unter den Themen zum aktuellen Abschnitt,
+   die Schrift wechselt genau dort die Farbe, wo er sie überdeckt. */
+html { scroll-padding-top: 5rem; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+.top {
+  --gut: max(16px, env(safe-area-inset-left, 0px));
+  --rail-pad: 0px;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+}
+.top .wrap { display: flex; align-items: center; gap: 0.5rem 1.25rem; min-height: 4rem; }
+.skip { position: absolute; left: 16px; top: -4rem; z-index: 30; padding: 0.7rem 1rem; background: var(--pen); color: var(--paper); }
 .skip:focus { top: 0.5rem; }
-.brand { font: 700 1.35rem/1 var(--f-sign); color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.02em; min-height: 44px; }
+.brand { font: 700 1.35rem/1 var(--f-sign); color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.02em; min-height: 44px; margin-right: auto; white-space: nowrap; }
 .brand::before { content: ""; width: 0.8rem; height: 0.8rem; border: 2.5px solid currentColor; border-radius: 50%; }
-.top nav { display: flex; flex-wrap: wrap; gap: 0 1.25rem; font-size: 0.95rem; }
-.top nav a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
-.top nav a:hover { color: var(--ink); text-decoration: underline; }
-@media (max-width: 640px) { .top .wrap { flex-direction: column; align-items: flex-start; gap: 0.5rem; } }
+
+.rail {
+  min-width: 0; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--fl, 0px), #000 calc(100% - var(--fr, 0px)), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 var(--fl, 0px), #000 calc(100% - var(--fr, 0px)), transparent);
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail-track { position: relative; display: flex; width: max-content; padding-inline: var(--rail-pad); }
+.rail-track a, .rail-mark span {
+  display: flex; align-items: center; min-height: 44px; padding-inline: 0.8rem;
+  font: 600 1.05rem/1 var(--f-sign); letter-spacing: 0.02em; white-space: nowrap;
+}
+.rail-track a { color: var(--muted); text-decoration: none; transition: color .15s; -webkit-tap-highlight-color: transparent; }
+.rail-track a:hover { color: var(--ink); }
+.rail-track a:focus-visible { outline-offset: -4px; }
+.rail-mark {
+  position: absolute; inset: 0; display: flex; padding-inline: var(--rail-pad);
+  background: var(--pen); color: var(--paper); pointer-events: none;
+  clip-path: inset(6px 100% 6px 0 round 3px);
+}
+.rail.ready .rail-mark { transition: clip-path .42s cubic-bezier(.16, 1, .3, 1); }
+
+.proto {
+  flex: none; display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding-inline: 0.8rem;
+  font: 600 1.05rem/1 var(--f-sign); letter-spacing: 0.02em; color: var(--ink); text-decoration: none;
+  border: 1.5px solid var(--ink); border-radius: 3px;
+  transition: background-color .15s, color .15s;
+}
+.proto svg { width: 0.9em; height: 0.9em; transition: transform .25s cubic-bezier(.16, 1, .3, 1); }
+.proto:hover { background: var(--ink); color: var(--paper); }
+.proto:hover svg { transform: translateX(3px); }
+
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--pen); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+
+/* Handy: Die obere Zeile mit dem Namen rollt weg, die Themenleiste bleibt stehen und lässt sich wischen. */
+@media (max-width: 860px) {
+  html { scroll-padding-top: 3.5rem; }
+  .top { --row: 3.25rem; --rail-pad: max(0px, calc(var(--gut) - 0.8rem)); top: calc(-1 * var(--row)); }
+  .top .wrap { flex-wrap: wrap; gap: 0; min-height: 0; }
+  .brand, .proto { margin-block: calc((var(--row) - 44px) / 2); }
+  .rail { order: 3; flex: 0 0 calc(100% + 2 * var(--gut)); margin-inline: calc(-1 * var(--gut)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail.ready .rail-mark, .proto svg { transition: none; }
+}
 
 /* Kopfbereich auf Karopapier */
 .sheet {
@@ -263,20 +312,25 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
 
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 
-<header class="top">
+<header class="top" id="kopf">
   <div class="wrap">
     <a class="brand" href="#">ESG TAP</a>
-    <nav aria-label="Seiten-Navigation">
-      <a href="#ausprobieren">Ausprobieren</a>
-      <a href="prototyp/">Prototyp</a>
-      <a href="#warum">Warum</a>
-      <a href="#module">Module</a>
-      <a href="#partner">Partner</a>
-      <a href="#kosten">Kosten</a>
-      <a href="#plan">Plan</a>
-      <a href="#kontakt">Kontakt</a>
+    <nav class="rail" id="rail" aria-label="Seiten-Navigation">
+      <div class="rail-track" id="railTrack">
+        <a href="#ausprobieren">Ausprobieren</a>
+        <a href="#warum">Warum</a>
+        <a href="#module">Module</a>
+        <a href="#partner">Partner</a>
+        <a href="#kosten">Kosten</a>
+        <a href="#plan">Plan</a>
+        <a href="#kontakt">Kontakt</a>
+      </div>
     </nav>
+    <a class="proto" href="prototyp/">Prototyp
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
   </div>
+  <span class="progress" id="progress" aria-hidden="true"></span>
 </header>
 
 <main id="inhalt">
@@ -676,6 +730,82 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
     if (justDragged) { justDragged = false; return; }
     tap();
   });
+})();
+</script>
+<script>
+(function () {
+  var header = document.getElementById("kopf"), rail = document.getElementById("rail"), track = document.getElementById("railTrack"), progress = document.getElementById("progress");
+  var links = Array.prototype.slice.call(track.querySelectorAll("a"));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var active = -1, hovered = -1, locked = false, unlock = 0, queued = false;
+
+  // Zweite Lage der Beschriftung: blau hinterlegt und bis auf den Block weggeschnitten.
+  var mark = document.createElement("div");
+  mark.className = "rail-mark"; mark.setAttribute("aria-hidden", "true");
+  links.forEach(function (a) { var t = document.createElement("span"); t.textContent = a.textContent; mark.appendChild(t); });
+  track.appendChild(mark);
+
+  function paint() {
+    var i = hovered >= 0 ? hovered : active, w = track.offsetWidth, a = links[i];
+    var left = a ? a.offsetLeft : 0, right = a ? w - a.offsetLeft - a.offsetWidth : w;
+    mark.style.clipPath = "inset(6px " + right + "px 6px " + left + "px round 3px)";
+  }
+  function fades() {
+    var rest = rail.scrollWidth - rail.clientWidth - rail.scrollLeft;
+    rail.style.setProperty("--fl", Math.min(Math.max(rail.scrollLeft, 0), 28) + "px");
+    rail.style.setProperty("--fr", Math.min(Math.max(rest, 0), 28) + "px");
+  }
+  function center(i) {
+    if (rail.scrollWidth <= rail.clientWidth) return;
+    var a = links[i], x = a ? a.offsetLeft + a.offsetWidth / 2 - rail.clientWidth / 2 : 0;
+    rail.scrollTo({ left: x, behavior: calm ? "auto" : "smooth" });
+  }
+  function setActive(i) {
+    if (i === active) return;
+    active = i;
+    links.forEach(function (a, n) { if (n === i) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+    paint(); center(i);
+  }
+  function spy() {
+    var top = header.getBoundingClientRect().bottom, line = top + (window.innerHeight - top) * 0.35, i = -1;
+    sections.forEach(function (s, n) { if (s.getBoundingClientRect().top <= line) i = n; });
+    var d = document.documentElement;
+    if (window.scrollY > 0 && window.scrollY + window.innerHeight >= d.scrollHeight - 2) i = sections.length - 1;
+    setActive(i);
+  }
+  function tick() {
+    queued = false;
+    var d = document.documentElement, max = d.scrollHeight - window.innerHeight;
+    progress.style.transform = "scaleX(" + (max > 0 ? Math.min(window.scrollY / max, 1) : 0) + ")";
+    if (!locked) spy();
+  }
+  function onScroll() { if (!queued) { queued = true; requestAnimationFrame(tick); } }
+  function release() { locked = false; clearTimeout(unlock); }
+
+  // Beim Klick direkt zum Ziel gleiten, nicht über alle Abschnitte dazwischen.
+  links.forEach(function (a, n) {
+    a.addEventListener("click", function () {
+      locked = true; hovered = -1; setActive(n);
+      clearTimeout(unlock); unlock = setTimeout(release, 1200);
+    });
+  });
+  window.addEventListener("scrollend", release);
+  ["wheel", "touchstart"].forEach(function (t) { window.addEventListener(t, release, { passive: true }); });
+
+  if (window.matchMedia("(hover: hover)").matches) {
+    links.forEach(function (a, n) { a.addEventListener("pointerenter", function () { hovered = n; paint(); }); });
+    track.addEventListener("pointerleave", function () { hovered = -1; paint(); });
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  rail.addEventListener("scroll", fades, { passive: true });
+  function layout() { paint(); fades(); onScroll(); }
+  window.addEventListener("resize", layout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+
+  tick(); layout();
+  requestAnimationFrame(function () { requestAnimationFrame(function () { rail.classList.add("ready"); }); });
 })();
 </script>
 </body>
