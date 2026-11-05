@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototyp | ESG TAP</title>
+<meta name="description" content="Prototyp von ESG TAP zum Ausprobieren: alle sieben Module mit Beispieldaten, echte NFC-Tags auf Android.">
+<style>
+/* Schriften liegen lokal im Ordner fonts/ wie auf der Startseite. Keine Anfrage an Google. */
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/Barlow-400.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/Barlow-600.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/BarlowCondensed-600.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/BarlowCondensed-700.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* Gleiche Linie wie die Startseite: Hausaufgabenheft, Kuli-Blau, schwarze Linien. Oben das Lesegeraet, daneben die Station. */
+:root {
+  --paper: #f8f8f5; --ink: #1b1d22; --muted: #5a5f69; --rule: #d9dce2; --grid: #dde4ef; --pen: #1d3fa6;
+  --lcd: #c9d3bf; --lcd-ink: #1f2a1b; --ok: #1f7a4a; --warn: #8f5a00; --bad: #c0392b;
+  --tag-black: #18191c; --tag-white: #e6e6e3; --tag-school: #1d3fa6; --tag-mark: #b4b7bd; --tag-mark-dark: #1d3fa6;
+  --f-sign: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-text: "Barlow", "Segoe UI", Arial, sans-serif;
+  --wrap: 68rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #16181d; --ink: #e7e8eb; --muted: #a2a7b1; --rule: #2e323a; --grid: #232834; --pen: #93abff;
+  --ok: #4cc47f; --warn: #e8b25c; --bad: #ff6b5e; --tag-white: #d8d8d4; --tag-black: #2f3137;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #16181d; --ink: #e7e8eb; --muted: #a2a7b1; --rule: #2e323a; --grid: #232834; --pen: #93abff;
+  --ok: #4cc47f; --warn: #e8b25c; --bad: #ff6b5e; --tag-white: #d8d8d4; --tag-black: #2f3137;
+  color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.6 var(--f-text); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--pen); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; }
+[hidden] { display: none !important; }
+h1, h2, h3 { font-family: var(--f-sign); font-weight: 700; margin: 0; line-height: 1; text-wrap: balance; }
+h2 { font-size: clamp(2rem, 4.5vw, 2.8rem); color: var(--pen); }
+h3 { font-size: 1.35rem; }
+p { margin: 0; }
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+.top { border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding-block: .9rem; }
+.brand { font: 700 1.35rem/1 var(--f-sign); color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: .5rem; letter-spacing: .02em; }
+.brand::before { content: ""; width: .8rem; height: .8rem; border: 2.5px solid currentColor; border-radius: 50%; }
+.top a.back { color: var(--muted); font-size: .95rem; text-decoration: none; }
+.top a.back:hover { color: var(--ink); text-decoration: underline; }
+
+.sheet { background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 20px 20px; border-bottom: 1px solid var(--rule); }
+.sheet .wrap { padding-block: clamp(2rem, 5vw, 3.5rem); display: flex; flex-wrap: wrap; gap: 1.25rem 3rem; align-items: end; justify-content: space-between; }
+.intro { display: flex; flex-direction: column; gap: .9rem; min-width: 0; flex: 1 1 22rem; }
+.intro h1 { font-size: clamp(3.4rem, 10vw, 6rem); line-height: .85; }
+.intro p { max-width: 34rem; font-size: 1.1rem; }
+.chipset { display: flex; flex-direction: column; gap: .5rem; min-width: 0; flex: 0 1 25rem; background: var(--paper); border: 1.5px solid var(--ink); padding: .8rem .9rem; }
+.chipset > span { font: 700 1.15rem/1 var(--f-sign); }
+.seg { display: flex; flex-wrap: wrap; gap: .4rem; }
+.seg button, .tabs a { font: 600 1.05rem/1 var(--f-sign); letter-spacing: .02em; padding: .55rem .8rem; background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 3px; text-decoration: none; }
+.seg button:hover, .tabs a:hover { background: var(--grid); }
+.seg button[aria-pressed="true"], .tabs a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.chipnote { font-size: .92rem; color: var(--muted); }
+.chipnote b { font-weight: 600; color: var(--ink); }
+
+.work { padding-block: clamp(1.75rem, 4vw, 3rem); display: grid; gap: 1.5rem; }
+.tabs { display: flex; flex-wrap: wrap; gap: .45rem; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 25rem); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.col, .station, .block { display: grid; gap: .75rem; min-width: 0; }
+.station { gap: 1.5rem; }
+.lead { color: var(--muted); margin-top: .5rem; max-width: 40rem; }
+.label { font: 700 1.15rem/1 var(--f-sign); }
+.example { font-size: .9rem; color: var(--muted); }
+
+.rows { display: grid; border-top: 1.5px solid var(--ink); }
+.row { display: flex; align-items: center; gap: .75rem; padding: .65rem 0; border-bottom: 1px solid var(--rule); min-width: 0; }
+label.row { cursor: pointer; }
+label.row:hover { background: var(--grid); }
+.row input[type="radio"], .row input[type="checkbox"] { accent-color: var(--pen); width: 18px; height: 18px; flex: none; margin: 0 0 0 .15rem; }
+.row .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.row small { display: block; color: var(--muted); font-size: .88rem; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; min-width: 4.4rem; font-weight: 600; }
+.pill { font: 600 .95rem/1.3 var(--f-sign); letter-spacing: .02em; white-space: nowrap; color: var(--muted); }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.on { color: var(--pen); }
+.total { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+.total .num { font: 700 1.6rem/1 var(--f-sign); font-variant-numeric: tabular-nums; }
+.btn { font: 600 .95rem/1.1 var(--f-text); padding: .5rem .75rem; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 3px; }
+.btn:hover { background: var(--grid); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--pen); border-color: var(--pen); color: var(--paper); }
+.btn.small { padding: .25rem .5rem; font-size: .88rem; }
+.btn:disabled { opacity: .55; cursor: default; }
+.field { display: grid; gap: .25rem; font-size: .92rem; font-weight: 600; min-width: 0; }
+.field input, .field select { font-weight: 400; font-size: 1rem; padding: .45rem .6rem; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 3px; width: 100%; min-width: 0; }
+.formrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .6rem; align-items: end; }
+
+.door { display: flex; align-items: center; gap: .9rem; padding: .75rem .9rem; border: 1.5px solid var(--ink); }
+.door strong { font: 700 1.3rem/1.1 var(--f-sign); }
+.door-frame { width: 44px; height: 64px; border: 3px solid var(--ink); border-bottom: 0; perspective: 120px; flex: none; }
+.door-leaf { width: 100%; height: 100%; background: var(--grid); transform-origin: left; transition: transform .4s ease; position: relative; }
+.door-leaf::after { content: ""; position: absolute; right: 5px; top: 48%; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+.door.open .door-frame { border-color: var(--ok); }
+.door.open .door-leaf { transform: rotateY(-62deg); }
+
+details { border-bottom: 1px solid var(--rule); padding: .6rem 0; }
+details:first-of-type { border-top: 1.5px solid var(--ink); }
+details summary { cursor: pointer; font: 700 1.2rem/1.3 var(--f-sign); }
+details ul { margin: .5rem 0 .25rem; padding-left: 1.2rem; }
+
+/* Lesegeraet wie auf der Startseite */
+.reader { border: 1.5px solid var(--ink); padding: 1rem; display: grid; gap: .9rem; min-width: 0; }
+.reader-head { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 1rem; align-items: center; }
+.device { padding: .7rem .7rem .6rem; border-radius: 16px; display: flex; flex-direction: column; gap: .55rem; align-items: center; background: linear-gradient(180deg, #34363c 0%, #26282d 45%, #1d1e22 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 0 rgba(0,0,0,.45), 0 10px 18px -10px rgba(0,0,0,.55); }
+.lcd { position: relative; width: 100%; min-height: 3.6rem; padding: .35rem .5rem; border-radius: 5px; background: linear-gradient(180deg, #d3dcc8, var(--lcd) 60%, #bcc7b0); color: var(--lcd-ink); font: 600 .98rem/1.15 var(--f-sign); display: flex; align-items: center; border: 4px solid #121315; overflow-wrap: anywhere; }
+.pad { width: 4.2rem; height: 4.2rem; border-radius: 50%; display: grid; place-items: center; color: #8d9098; background: radial-gradient(circle at 50% 45%, #2b2d32, #202125 70%); }
+.pad svg { width: 62%; height: 62%; }
+.led { width: 62%; height: 5px; border-radius: 3px; background: linear-gradient(180deg, #3d4046, #2a2c31); transition: background .15s, box-shadow .15s; }
+.reader.ok .led { background: #4cc47f; box-shadow: 0 0 10px #4cc47f; } .reader.ok .pad { color: #9fe3b9; }
+.reader.warn .led { background: #e8b25c; box-shadow: 0 0 10px #e8b25c; } .reader.warn .pad { color: #f2d199; }
+.reader.bad .led { background: #ff6b5e; box-shadow: 0 0 10px #ff6b5e; } .reader.bad .pad { color: #f2a39b; }
+.reader.pulse .device { animation: pulse .35s ease-out; }
+@keyframes pulse { 0% { transform: scale(.98); } 100% { transform: scale(1); } }
+.reader-text { min-width: 0; font-size: .98rem; }
+.reader.warn .reader-text { color: var(--warn); } .reader.bad .reader-text { color: var(--bad); }
+.tech { font-size: .82rem; line-height: 1.45; color: var(--muted); border-top: 1px solid var(--rule); padding-top: .6rem; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.assign { display: grid; gap: .6rem; border-top: 1.5px solid var(--ink); padding-top: .75rem; }
+
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr)); gap: .4rem .15rem; }
+.tag { background: none; border: 0; padding: .3rem .1rem; display: grid; justify-items: center; align-content: start; gap: .2rem; border-radius: 3px; font-size: .88rem; line-height: 1.2; text-align: center; min-width: 0; }
+.tag:hover { background: var(--grid); }
+.tag:active .disc { transform: translateY(-4px) scale(.97); }
+.tag small { color: var(--muted); font-size: .76rem; display: block; }
+.fob { --fob: var(--tag-black); --mark: var(--tag-mark); position: relative; padding-top: 9px; display: block; }
+.fob::before { content: ""; position: absolute; left: 50%; top: 0; width: 18px; height: 18px; transform: translateX(-50%); border-radius: 50%; background: var(--fob); box-shadow: inset 0 0 0 5.5px var(--fob), inset 0 0 0 9px var(--paper); }
+.disc { position: relative; width: 58px; height: 58px; border-radius: 50%; background: var(--fob); color: var(--mark); display: grid; place-content: center; justify-items: center; font: 600 .86rem/1 "Barlow", Arial, sans-serif; letter-spacing: .02em; transition: transform .12s ease; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -2px 3px rgba(0,0,0,.25); }
+.disc svg { width: 17px; height: 17px; margin-bottom: 2px; }
+.fob.white { --fob: var(--tag-white); --mark: var(--tag-mark-dark); }
+.fob.school { --fob: var(--tag-school); --mark: #e7e8eb; }
+.tag.clone .disc { outline: 2px dashed var(--bad); outline-offset: 2px; }
+.tag.new .disc { background: transparent; color: var(--muted); border: 2px dashed var(--muted); box-shadow: none; font-size: 1.5rem; font-weight: 400; }
+.tag.new .fob::before { display: none; }
+.hint { font-size: .9rem; color: var(--muted); }
+
+.nfc { display: grid; gap: .5rem; border-top: 1.5px solid var(--ink); padding-top: .75rem; }
+.nfc h3 { font-size: 1.15rem; }
+.nfc-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.nfc-msg { font-size: .92rem; }
+.nfc-msg.err { color: var(--bad); }
+.nfc p.small { font-size: .9rem; color: var(--muted); }
+
+.log { display: grid; border-top: 1.5px solid var(--ink); }
+.log div.item { display: grid; grid-template-columns: 2.9rem minmax(0, 1fr) auto; gap: .5rem; align-items: baseline; padding: .45rem 0; border-bottom: 1px solid var(--rule); font-size: .92rem; }
+.log time { font: 600 1rem/1.4 var(--f-sign); font-variant-numeric: tabular-nums; color: var(--muted); }
+.log .what { overflow-wrap: anywhere; }
+footer .wrap { border-top: 1px solid var(--rule); padding-block: 1.25rem 2rem; color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+footer p { max-width: 44rem; }
+@media (max-width: 420px) { .reader-head { grid-template-columns: 8.2rem minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .reader.pulse .device { animation: none; } .door-leaf, .disc { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../">ESG TAP</a>
+    <a class="back" href="../">Zurück zur Startseite</a>
+  </div>
+</header>
+
+<main>
+<div class="sheet">
+  <div class="wrap">
+    <div class="intro">
+      <h1>Prototyp</h1>
+      <p>So könnte ESG TAP in der Schule laufen. Alle sieben Module sind zum Ausprobieren da, mit erfundenen Personen und Beispieldaten.</p>
+    </div>
+    <div class="chipset">
+      <span id="chip-label">Chip im Anhänger</span>
+      <div class="seg" role="group" aria-labelledby="chip-label">
+        <button type="button" id="chip-ntag" data-act="chip" data-chip="ntag">NTAG213</button>
+        <button type="button" id="chip-dna" data-act="chip" data-chip="dna">NTAG 424 DNA</button>
+      </div>
+      <p class="chipnote" id="chipnote"></p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap work">
+  <nav class="tabs" id="tabs" aria-label="Module"></nav>
+  <div class="grid">
+    <section class="station" id="station"></section>
+    <aside class="col">
+      <div class="reader" id="reader">
+        <div class="reader-head">
+          <div class="device" aria-hidden="false">
+            <div class="lcd" id="lcd" role="status"></div>
+            <div class="pad" id="ring"></div>
+            <span class="led"></span>
+          </div>
+          <p class="reader-text" id="reader-text"></p>
+        </div>
+        <div class="tech" id="tech" hidden></div>
+        <div class="assign" id="assign" hidden></div>
+        <div class="block">
+          <span class="label">Anhänger antippen</span>
+          <div class="tray" id="tray"></div>
+          <p class="hint">Probier es so: Tippe Annas Anhänger an, danach den Klon. Stell dann oben den Chip um und wiederhole es.</p>
+        </div>
+        <div class="nfc" id="nfc"></div>
+      </div>
+      <div class="block">
+        <span class="label">Protokoll</span>
+        <div class="log" id="log"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Alle Personen und Buchungen sind erfunden. Was du hier machst, bleibt nur in diesem Browser und wird nicht verschickt. Bitte keine echten Namen eintragen.</p>
+    <button type="button" class="btn" id="reset" data-act="reset">Demo zurücksetzen</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var STORE = "esgtap-prototyp-v1";
+  var STAR = '<svg viewBox="-12 -12 24 24" aria-hidden="true"><path fill="currentColor" d="M0-12C.7-5.5 5.5-.7 12 0 5.5.7.7 5.5 0 12-.7 5.5-5.5.7-12 0-5.5-.7-.7-5.5 0-12Z"/></svg>';
+  var ICON = {
+    idle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 8.5a6 6 0 0 1 0 7"/><path d="M11 6a10 10 0 0 1 0 12"/><path d="M15 3.5a14 14 0 0 1 0 17"/></svg>',
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v9"/><path d="M12 19v.01"/></svg>',
+    bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>'
+  };
+  var MODULES = [
+    ["pay", "PAY"], ["library", "LIBRARY"], ["find", "FIND"], ["time", "TIME"],
+    ["profile", "PROFILE"], ["guide", "GUIDE"], ["access", "ACCESS"]
+  ];
+  var ANNA = "04:A2:19:7C:3B:51:80", BEN = "04:6F:E3:12:9A:4D:81", KELLER = "04:1B:77:C8:05:E2:80";
+
+  function seed() {
+    var now = Date.now();
+    return {
+      chip: "ntag",
+      people: [
+        { id: "anna", name: "Anna Beispiel", cls: "Klasse 7", balance: 1250, rooms: ["r004"], contact: true, notify: true },
+        { id: "ben", name: "Ben Muster", cls: "Klasse 10", balance: 200, rooms: ["r004", "musik"], contact: false, notify: true },
+        { id: "keller", name: "Lehrkraft Muster", cls: "Lehrkraft", balance: 2000, rooms: ["r004", "musik", "server"], contact: true, notify: false }
+      ],
+      tags: (function () { var t = {}; t[ANNA] = "anna"; t[BEN] = "ben"; t[KELLER] = "keller"; return t; })(),
+      custom: [],
+      counters: { anna: 41, ben: 17, keller: 88 },
+      menu: [
+        { id: "essen", name: "Mittagessen", cents: 350 },
+        { id: "broetchen", name: "Brötchen", cents: 120 },
+        { id: "wasser", name: "Wasser 0,5 l", cents: 90 },
+        { id: "apfel", name: "Apfel", cents: 40 }
+      ],
+      cart: { essen: true },
+      books: [
+        { id: "bio", name: "Biologie Klasse 11", by: null, due: null },
+        { id: "mathe", name: "Formelsammlung Mathematik", by: "ben", due: now + 5 * 864e5 },
+        { id: "faust", name: "Faust. Der Tragödie erster Teil", by: null, due: null }
+      ],
+      book: "bio",
+      rooms: [
+        { id: "r004", name: "Raum 004" },
+        { id: "musik", name: "Musikraum" },
+        { id: "server", name: "Technikraum" }
+      ],
+      room: "r004",
+      events: [
+        { id: "konzert", name: "Schulkonzert", present: { keller: now - 40 * 6e4 } },
+        { id: "fest", name: "Schulfest", present: {} }
+      ],
+      event: "konzert",
+      found: [
+        { id: "f1", what: "Trinkflasche", where: "Sporthalle", done: false },
+        { id: "f2", what: "Schwarzer Schlüsselbund", where: "Aula", done: false },
+        { id: "f3", what: "Kopfhörer", where: "Raum 112", done: true }
+      ],
+      profile: "anna",
+      log: [
+        { at: now - 26 * 6e4, kind: "ok", text: "Lehrkraft Muster: Check-in Schulkonzert" },
+        { at: now - 58 * 6e4, kind: "bad", text: "Ben Muster: Kein Zutritt zum Technikraum" },
+        { at: now - 95 * 6e4, kind: "ok", text: "Anna Beispiel: Brötchen bezahlt, 1,20 €" }
+      ],
+      seq: 1
+    };
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { /* ohne Speicher laeuft die Demo im Arbeitsspeicher */ }
+    return seed();
+  }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { /* siehe load */ } }
+
+  var S = load();
+  var ui = { module: "pay", result: null, pending: null, doorOpen: false, doorTimer: null, resetArmed: false, query: "" };
+  var nfc = { scanning: false, ctrl: null, msg: "", err: false, confirmWrite: false, writing: false };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+  function euro(c) { return (c / 100).toFixed(2).replace(".", ",") + " €"; }
+  function clock(t) { return new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); }
+  function day(t) { return new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }); }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function hex(n) {
+    var a = new Uint8Array(n), s = "";
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+    else for (var i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 256);
+    a.forEach(function (b) { s += ("0" + b.toString(16)).slice(-2); });
+    return s;
+  }
+  function randomUid() {
+    var h = hex(6).toUpperCase().match(/../g);
+    return "04:" + h.join(":");
+  }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
+  /* ---------- Antippen auswerten ---------- */
+  function tap(tag) {
+    var chipName = S.chip === "dna" ? "NTAG 424 DNA" : "NTAG213";
+    var srcName = { demo: "Simulation", clone: "Simulation, Klon", nfc: "Echter Tag per Web NFC", link: "Echter Tag per Link" }[tag.source];
+    var tech = "ID " + tag.uid + "  |  " + chipName + "  |  " + srcName;
+    var isReal = tag.source === "nfc" || tag.source === "link";
+    ui.pending = null;
+
+    if (ui.module === "guide") {
+      return finish({ kind: "ok", title: "Handbuch geöffnet", detail: "Der Tag ist hier nur ein Link. Geprüft wird nichts, deshalb reicht ein gesperrter Standard-Sticker.", log: "Handbuch geöffnet" }, tech);
+    }
+
+    if (S.chip === "dna" && tag.source === "clone") {
+      var seen = S.counters.anna;
+      return finish({ kind: "bad", title: "Klon abgewiesen", detail: "Der kopierte Prüfcode wurde schon benutzt. Annas Guthaben und Rechte bleiben unberührt.", log: "Klon von Annas Tag abgewiesen" },
+        tech + "  |  Zähler " + seen + " schon verbraucht (simuliert)");
+    }
+    if (S.chip === "dna" && isReal) {
+      return finish({ kind: "bad", title: "Kein Prüfcode", detail: "Die 424-DNA-Prüfung ist in diesem Prototyp nur simuliert. Stell oben auf NTAG213, um echte Tags zu nutzen.", log: "Echter Tag ohne Prüfcode abgewiesen" }, tech);
+    }
+
+    var personId = S.tags[tag.uid];
+    var person = personId && byId(S.people, personId);
+    if (!person) {
+      ui.pending = tag;
+      return finish({ kind: "warn", title: "Unbekannter Tag", detail: "Dieser Tag gehört noch zu niemandem. Ordne ihn unten einer Person zu.", log: "Unbekannter Tag gelesen" }, tech);
+    }
+
+    if (S.chip === "dna") {
+      S.counters[person.id] = (S.counters[person.id] || 0) + 1;
+      tech += "  |  Zähler " + S.counters[person.id] + ", Code " + hex(8).toUpperCase() + " (simuliert)";
+    }
+
+    var r = ACTIONS[ui.module](person);
+    r.log = person.name + ": " + r.log;
+    if (tag.source === "clone" && r.kind === "ok") {
+      r.kind = "warn";
+      r.title = "Klon akzeptiert";
+      r.detail = "Das System sieht nur die Seriennummer und hält den Klon für Annas Tag. " + r.detail;
+      r.log = "KLON als " + r.log;
+    }
+    finish(r, tech);
+  }
+
+  function finish(r, tech) {
+    ui.result = { kind: r.kind, title: r.title, detail: r.detail, tech: tech };
+    S.log.unshift({ at: Date.now(), kind: r.kind, text: r.log });
+    S.log = S.log.slice(0, 40);
+    save();
+    render();
+    var reader = $("reader");
+    reader.classList.remove("pulse");
+    void reader.offsetWidth;
+    reader.classList.add("pulse");
+    if (window.matchMedia("(max-width: 860px)").matches) reader.scrollIntoView({ block: "nearest" });
+  }
+
+  var ACTIONS = {
+    pay: function (p) {
+      var items = S.menu.filter(function (m) { return S.cart[m.id]; });
+      var total = items.reduce(function (s, m) { return s + m.cents; }, 0);
+      var names = items.map(function (m) { return m.name; }).join(", ");
+      if (!items.length) return { kind: "bad", title: "Nichts ausgewählt", detail: "Wähle zuerst mindestens einen Artikel aus.", log: "Bezahlen ohne Artikel" };
+      if (p.balance < total) return { kind: "bad", title: "Guthaben reicht nicht", detail: p.name + " hat " + euro(p.balance) + ", nötig sind " + euro(total) + ".", log: "Guthaben reicht nicht für " + euro(total) };
+      p.balance -= total;
+      return { kind: "ok", title: euro(total) + " bezahlt", detail: p.name + " hat noch " + euro(p.balance) + ".", log: names + " bezahlt, " + euro(total) };
+    },
+    library: function (p) {
+      var b = byId(S.books, S.book);
+      if (b.by && b.by !== p.id) return { kind: "bad", title: "Schon ausgeliehen", detail: "Dieses Buch ist noch verliehen. Wer es hat, wird nicht angezeigt.", log: "Buch schon verliehen: " + b.name };
+      if (b.by === p.id) {
+        b.by = null; b.due = null;
+        return { kind: "ok", title: "Zurückgegeben", detail: b.name, log: "Rückgabe " + b.name };
+      }
+      b.by = p.id; b.due = Date.now() + 28 * 864e5;
+      return { kind: "ok", title: "Ausgeliehen bis " + day(b.due), detail: b.name, log: "Ausleihe " + b.name };
+    },
+    access: function (p) {
+      var room = byId(S.rooms, S.room);
+      if (p.rooms.indexOf(room.id) === -1) return { kind: "bad", title: "Kein Zutritt", detail: p.name + " hat für " + room.name + " keine Freigabe.", log: "Kein Zutritt zu " + room.name };
+      ui.doorOpen = true;
+      clearTimeout(ui.doorTimer);
+      ui.doorTimer = setTimeout(function () { ui.doorOpen = false; render(); }, 5000);
+      return { kind: "ok", title: room.name + " offen", detail: "Die Tür bleibt 5 Sekunden entriegelt.", log: room.name + " geöffnet" };
+    },
+    time: function (p) {
+      var ev = byId(S.events, S.event);
+      if (ev.present[p.id]) {
+        delete ev.present[p.id];
+        return { kind: "ok", title: "Ausgecheckt", detail: ev.name, log: "Check-out " + ev.name };
+      }
+      ev.present[p.id] = Date.now();
+      return { kind: "ok", title: "Eingecheckt", detail: ev.name, log: "Check-in " + ev.name };
+    },
+    find: function (p) {
+      if (!p.contact) return { kind: "warn", title: "Bitte im Sekretariat abgeben", detail: "Die Person möchte über Funde nicht direkt benachrichtigt werden.", log: "Anhänger gefunden, keine Benachrichtigung" };
+      return { kind: "ok", title: "Die Person wird benachrichtigt", detail: "Der Name bleibt für dich verborgen. Der Versand ist hier nur simuliert.", log: "Anhänger gefunden, Nachricht simuliert" };
+    },
+    profile: function (p) {
+      S.profile = p.id;
+      return { kind: "ok", title: "Profil geöffnet", detail: p.name + ", " + p.cls, log: "Profil geöffnet" };
+    }
+  };
+
+  /* ---------- Darstellung ---------- */
+  var STATIONS = {
+    pay: function () {
+      var total = S.menu.reduce(function (s, m) { return s + (S.cart[m.id] ? m.cents : 0); }, 0);
+      return head("Mensa", "Artikel auswählen, dann den Anhänger ans Lesegerät halten.") +
+        '<div class="block"><div class="rows">' + S.menu.map(function (m) {
+          return '<label class="row"><input type="checkbox" id="cart-' + m.id + '" data-cart="' + m.id + '"' + (S.cart[m.id] ? " checked" : "") + '><span class="grow">' + esc(m.name) + '</span><span class="num">' + euro(m.cents) + "</span></label>";
+        }).join("") + '</div><div class="total"><span>Summe</span><span class="num">' + euro(total) + "</span></div></div>" +
+        '<div class="block"><span class="label">Guthaben</span><div class="rows">' + S.people.map(function (p) {
+          return '<div class="row"><span class="grow">' + esc(p.name) + '<small>' + esc(p.cls) + '</small></span><span class="num">' + euro(p.balance) + '</span><button type="button" class="btn small" data-act="topup" data-person="' + p.id + '">+10 €</button></div>';
+        }).join("") + '</div><p class="example">Aufladen ist nur simuliert. Es fließt kein Geld.</p></div>';
+    },
+    library: function () {
+      return head("Bibliothek", "Buch auswählen. Der Anhänger leiht es aus oder gibt es zurück.") +
+        '<div class="block"><div class="rows">' + S.books.map(function (b) {
+          var who = b.by ? '<span class="pill warn">bis ' + day(b.due) + "</span>" : '<span class="pill ok">frei</span>';
+          return '<label class="row"><input type="radio" name="book" id="book-' + b.id + '" data-book="' + b.id + '"' + (S.book === b.id ? " checked" : "") + '><span class="grow">' + esc(b.name) + "</span>" + who + "</label>";
+        }).join("") + "</div></div>";
+    },
+    access: function () {
+      var room = byId(S.rooms, S.room);
+      return head("Türzugang", "Raum auswählen. Der Anhänger öffnet nur freigegebene Räume.") +
+        '<div class="door' + (ui.doorOpen ? " open" : "") + '"><div class="door-frame"><div class="door-leaf"></div></div><div><strong>' + esc(room.name) + '</strong><br><span class="pill ' + (ui.doorOpen ? "ok" : "") + '">' + (ui.doorOpen ? "Entriegelt" : "Verriegelt") + "</span></div></div>" +
+        '<div class="block"><div class="rows">' + S.rooms.map(function (r) {
+          var allowed = S.people.filter(function (p) { return p.rooms.indexOf(r.id) !== -1; }).map(function (p) { return p.name; }).join(", ");
+          return '<label class="row"><input type="radio" name="room" id="room-' + r.id + '" data-room="' + r.id + '"' + (S.room === r.id ? " checked" : "") + '><span class="grow">' + esc(r.name) + "<small>Freigabe: " + esc(allowed) + "</small></span></label>";
+        }).join("") + "</div></div>";
+    },
+    time: function () {
+      var ev = byId(S.events, S.event);
+      var ids = Object.keys(ev.present);
+      return head("Veranstaltungen", "Der erste Tap checkt ein, der zweite checkt aus.") +
+        '<div class="block"><div class="rows">' + S.events.map(function (e) {
+          var n = Object.keys(e.present).length;
+          return '<label class="row"><input type="radio" name="event" id="event-' + e.id + '" data-event="' + e.id + '"' + (S.event === e.id ? " checked" : "") + '><span class="grow">' + esc(e.name) + '</span><span class="pill on">' + n + " anwesend</span></label>";
+        }).join("") + "</div></div>" +
+        '<div class="block"><span class="label">Anwesend bei ' + esc(ev.name) + "</span>" + (ids.length ? '<div class="rows">' + ids.map(function (id) {
+          var p = byId(S.people, id);
+          return '<div class="row"><span class="grow">' + esc(p ? p.name : id) + '</span><span class="num">seit ' + clock(ev.present[id]) + "</span></div>";
+        }).join("") + "</div>" : '<p class="example">Noch niemand eingecheckt. Tippe unten einen Anhänger an.</p>') + "</div>";
+    },
+    find: function () {
+      var q = ui.query.toLowerCase();
+      var open = S.found.filter(function (f) { return (f.what + " " + f.where).toLowerCase().indexOf(q) !== -1; });
+      return head("Fundbüro", "Wer einen Anhänger findet, tippt ihn an. Die Person erfährt es, ohne dass ihr Name sichtbar wird.") +
+        '<div class="block"><label class="field" for="find-q">Fundstücke suchen<input id="find-q" type="search" autocomplete="off" value="' + esc(ui.query) + '" placeholder="zum Beispiel Schlüssel"></label>' +
+        '<div class="rows" id="find-list">' + findRows(open) + "</div></div>" +
+        '<form class="block" id="find-form"><span class="label">Fund melden</span><div class="formrow"><label class="field" for="find-what">Was<input id="find-what" required maxlength="60" autocomplete="off"></label><label class="field" for="find-where">Wo<input id="find-where" required maxlength="40" autocomplete="off"></label><button class="btn primary" type="submit">Melden</button></div></form>';
+    },
+    guide: function () {
+      return head("Schülerhandbuch", "Das geht auch ohne Tag. Der Anhänger ist nur ein schneller Link hierher.") +
+        '<div class="block"><details open><summary>Schulregeln</summary><ul><li>Handys bleiben im Unterricht lautlos.</li><li>Den Anhänger gibst du nicht weiter.</li><li>Verlust meldest du sofort im Sekretariat, dann wird der Tag gesperrt.</li></ul></details>' +
+        "<details><summary>Ansprechpartner</summary><ul><li>Sekretariat: Anhänger, Schülerausweis, Fundsachen</li><li>Schulsozialarbeit: Sorgen und Konflikte</li><li>Vertrauenslehrkraft: alles, was vertraulich bleiben soll</li><li>Hausmeister: Räume und Schließfächer</li></ul></details>" +
+        "<details><summary>Informationen</summary><ul><li>Mensa: Vorbestellung bis zum Vortag</li><li>Bibliothek: Leihfrist vier Wochen</li></ul></details>" +
+        '<p class="example">Beispielinhalt, nicht die echte Hausordnung.</p></div>';
+    },
+    profile: function () {
+      var p = byId(S.people, S.profile) || S.people[0];
+      var loans = S.books.filter(function (b) { return b.by === p.id; });
+      var rooms = p.rooms.map(function (id) { var r = byId(S.rooms, id); return r ? r.name : id; }).join(", ") || "keine";
+      var uids = Object.keys(S.tags).filter(function (u) { return S.tags[u] === p.id; });
+      return head(esc(p.name), esc(p.cls) + ". Der Anhänger öffnet das passende Profil.") +
+        '<div class="block"><div class="rows">' +
+        '<div class="row"><span class="grow">Guthaben</span><span class="num">' + euro(p.balance) + "</span></div>" +
+        '<div class="row"><span class="grow">Ausgeliehen<small>' + (loans.length ? loans.map(function (b) { return esc(b.name); }).join(", ") : "Nichts") + "</small></span></div>" +
+        '<div class="row"><span class="grow">Räume<small>' + esc(rooms) + "</small></span></div>" +
+        '<div class="row"><span class="grow">Anhänger<small>' + esc(uids.join(", ") || "keiner") + "</small></span></div></div></div>" +
+        '<div class="block"><span class="label">Einstellungen</span><div class="rows">' +
+        '<label class="row"><input type="checkbox" id="set-contact" data-set="contact"' + (p.contact ? " checked" : "") + '><span class="grow">Bei Fund benachrichtigen</span></label>' +
+        '<label class="row"><input type="checkbox" id="set-notify" data-set="notify"' + (p.notify ? " checked" : "") + '><span class="grow">Hinweis bei jeder Buchung</span></label></div></div>';
+    }
+  };
+  function head(title, lead) { return '<div><h2>' + title + '</h2><p class="lead">' + lead + "</p></div>"; }
+  function findRows(list) {
+    if (!list.length) return '<div class="row"><span class="grow">Nichts gefunden.</span></div>';
+    return list.map(function (f) {
+      return '<div class="row"><span class="grow">' + esc(f.what) + "<small>" + esc(f.where) + "</small></span>" +
+        (f.done ? '<span class="pill ok">abgeholt</span>' : '<button type="button" class="btn small" data-act="pickup" data-found="' + f.id + '">Abgeholt</button>') + "</div>";
+    }).join("");
+  }
+
+  function fob(cls, label, sub, act, extra) {
+    return '<button type="button" class="tag ' + (extra || "") + '" ' + act + '><span class="fob ' + cls + '"><span class="disc">' + (extra === "new" ? "+" : STAR + "ESG") + "</span></span><span>" + esc(label) + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span></button>";
+  }
+
+  function render() {
+    document.documentElement.dataset.chip = S.chip;
+    $("chip-ntag").setAttribute("aria-pressed", S.chip === "ntag");
+    $("chip-dna").setAttribute("aria-pressed", S.chip === "dna");
+    $("chipnote").innerHTML = S.chip === "ntag"
+      ? "<b>Standard-Sticker.</b> Das System prüft nur die Seriennummer, deshalb kommt ein Klon durch."
+      : "<b>Sicherer Chip.</b> Jeder Tap liefert einen neuen Prüfcode, deshalb fällt ein Klon auf. Diese Prüfung ist hier simuliert.";
+
+    $("tabs").innerHTML = MODULES.map(function (m) {
+      return '<a href="#' + m[0] + '"' + (ui.module === m[0] ? ' aria-current="page"' : "") + ">" + m[1] + "</a>";
+    }).join("");
+
+    $("station").innerHTML = STATIONS[ui.module]();
+
+    var reader = $("reader");
+    var r = ui.result;
+    reader.classList.remove("ok", "warn", "bad");
+    if (r) reader.classList.add(r.kind);
+    $("ring").innerHTML = ICON[r ? r.kind : "idle"];
+    $("lcd").textContent = r ? r.title : "Anhänger hinhalten";
+    $("reader-text").textContent = r ? r.detail : "Tippe unten einen Anhänger an oder lies einen echten Tag.";
+    $("tech").hidden = !r;
+    $("tech").textContent = r ? r.tech : "";
+
+    renderAssign();
+
+    var tray = fob("black", "Anna", "Beispiel", 'data-act="tap" data-uid="' + ANNA + '" data-source="demo"') +
+      fob("white", "Ben", "Beispiel", 'data-act="tap" data-uid="' + BEN + '" data-source="demo"') +
+      fob("school", "Lehrkraft", "Beispiel", 'data-act="tap" data-uid="' + KELLER + '" data-source="demo"') +
+      fob("black", "Klon", "von Annas Tag", 'data-act="tap" data-uid="' + ANNA + '" data-source="clone"', "clone");
+    S.custom.forEach(function (c) {
+      var p = byId(S.people, S.tags[c]);
+      tray += fob("school", p ? p.name : "Tag", "neu", 'data-act="tap" data-uid="' + esc(c) + '" data-source="demo"');
+    });
+    tray += fob("black", "Neuer Tag", "noch nicht vergeben", 'data-act="newtag"', "new");
+    $("tray").innerHTML = tray;
+
+    renderNfc();
+
+    $("log").innerHTML = S.log.slice(0, 8).map(function (l) {
+      var label = { ok: "ok", warn: "Achtung", bad: "abgelehnt" }[l.kind];
+      return '<div class="item"><time>' + clock(l.at) + '</time><span class="what">' + esc(l.text) + '</span><span class="pill ' + l.kind + '">' + label + "</span></div>";
+    }).join("");
+
+    $("reset").textContent = ui.resetArmed ? "Wirklich zurücksetzen?" : "Demo zurücksetzen";
+  }
+
+  function renderAssign() {
+    var box = $("assign");
+    box.hidden = !ui.pending;
+    if (!ui.pending) { box.innerHTML = ""; return; }
+    box.innerHTML = '<form class="block" id="assign-form"><div class="formrow">' +
+      '<label class="field" for="assign-person">Zuordnen zu<select id="assign-person">' +
+      S.people.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + "</option>"; }).join("") +
+      '<option value="">Neue Beispielperson</option></select></label>' +
+      '<label class="field" for="assign-name">Name, falls neu<input id="assign-name" maxlength="30" autocomplete="off" placeholder="zum Beispiel Lea Test"></label></div>' +
+      '<p class="example">Bitte nur erfundene Namen eintragen.</p>' +
+      '<div><button class="btn primary" type="submit">Tag zuordnen</button></div></form>';
+  }
+
+  function nfcSupport() {
+    if (!("NDEFReader" in window)) return "none";
+    var framed = false;
+    try { framed = window.top !== window; } catch (e) { framed = true; }
+    return framed ? "framed" : "ready";
+  }
+
+  function renderNfc() {
+    var mode = nfcSupport();
+    var html = "<h3>Echter Tag</h3>";
+    if (mode === "ready") {
+      html += '<div class="nfc-actions"><button type="button" class="btn primary" data-act="scan">' + (nfc.scanning ? "Lesen beenden" : "Echten Tag lesen") + "</button>" +
+        '<button type="button" class="btn" data-act="write"' + (nfc.writing ? " disabled" : "") + ">Tag mit Link beschreiben</button></div>";
+      if (nfc.confirmWrite) {
+        html += '<p class="small">Das überschreibt den Inhalt des nächsten Tags, den du ans Handy hältst. Der Tag wird dabei nicht gesperrt.</p><div class="nfc-actions"><button type="button" class="btn primary" data-act="write-go">Überschreiben</button><button type="button" class="btn" data-act="write-no">Abbrechen</button></div>';
+      }
+      if (!nfc.msg) html += '<p class="small">Tag nach dem Start an die Rückseite des Handys halten. Der Link-Schritt macht den Tag auch fürs iPhone nutzbar.</p>';
+    } else if (mode === "framed") {
+      html += '<p class="small">Dieser Browser kann NFC, die eingebettete Ansicht blockiert es aber. Öffne die App auf ihrer eigenen Adresse.</p>';
+    } else {
+      html += '<p class="small">Dieser Browser kann NFC nicht direkt lesen. Das geht nur mit Chrome auf Android. Auf dem iPhone funktioniert ein Tag, auf dem ein Link zu dieser App steht. Die Simulation oben läuft überall.</p>';
+    }
+    if (nfc.msg) html += '<p class="nfc-msg' + (nfc.err ? " err" : "") + '" role="status">' + esc(nfc.msg) + "</p>";
+    $("nfc").innerHTML = html;
+  }
+
+  /* ---------- Web NFC ---------- */
+  function nfcError(e) {
+    if (e && e.name === "AbortError") return "";
+    if (e && e.name === "NotAllowedError") return "NFC ist nicht erlaubt. Erlaube es in den Website-Einstellungen von Chrome und versuche es erneut.";
+    if (e && e.name === "NotSupportedError") return "Dieses Gerät hat kein nutzbares NFC.";
+    if (e && e.name === "NotReadableError") return "NFC ist gerade nicht bereit. Schalte es in den Android-Einstellungen ein.";
+    if (e && e.name === "NetworkError") return "Der Tag war zu kurz am Handy. Bitte ruhig halten und erneut versuchen.";
+    return "NFC hat nicht geklappt: " + (e && e.message ? e.message : "unbekannter Fehler");
+  }
+  function linkTagFrom(message) {
+    var records = (message && message.records) || [];
+    for (var i = 0; i < records.length; i++) {
+      var rec = records[i];
+      if (rec.recordType !== "url" && rec.recordType !== "absolute-url") continue;
+      try {
+        var url = new URL(new TextDecoder(rec.encoding || "utf-8").decode(rec.data));
+        var id = url.searchParams.get("tag");
+        if (id) return id;
+      } catch (e) { /* anderer Inhalt, dann gilt die Seriennummer */ }
+    }
+    return null;
+  }
+  function stopScan() {
+    if (nfc.ctrl) nfc.ctrl.abort();
+    nfc.ctrl = null;
+    nfc.scanning = false;
+  }
+  function startScan() {
+    var ctrl = new AbortController();
+    var reader = new NDEFReader();
+    nfc.ctrl = ctrl;
+    reader.onreading = function (event) {
+      if (nfc.writing) return;
+      var linked = linkTagFrom(event.message);
+      var uid = linked ? "link:" + linked : (event.serialNumber || "").toUpperCase();
+      if (!uid) {
+        nfc.msg = "Der Tag hat keine lesbare Kennung geliefert."; nfc.err = true;
+        render();
+        return;
+      }
+      nfc.msg = "Tag gelesen."; nfc.err = false;
+      tap({ uid: uid, source: "nfc" });
+    };
+    reader.onreadingerror = function () {
+      nfc.msg = "Der Tag ließ sich nicht lesen. Er ist vielleicht nicht NDEF-formatiert."; nfc.err = true;
+      render();
+    };
+    return reader.scan({ signal: ctrl.signal }).then(function () {
+      nfc.scanning = true; nfc.msg = "Lesen läuft. Halte einen Tag ans Handy."; nfc.err = false;
+      render();
+    }).catch(function (e) {
+      nfc.scanning = false; nfc.ctrl = null;
+      var m = nfcError(e);
+      if (m) { nfc.msg = m; nfc.err = true; }
+      render();
+    });
+  }
+  function writeTag() {
+    stopScan();
+    nfc.confirmWrite = false; nfc.writing = true; nfc.msg = "Halte jetzt den Tag ans Handy."; nfc.err = false;
+    render();
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 30000);
+    var url = location.origin + location.pathname + "?tag=" + hex(8);
+    new NDEFReader().write({ records: [{ recordType: "url", data: url }] }, { signal: ctrl.signal }).then(function () {
+      nfc.msg = "Tag beschrieben. Er öffnet jetzt diese App, auch auf dem iPhone."; nfc.err = false;
+    }).catch(function (e) {
+      nfc.msg = nfcError(e) || "Keinen Tag gefunden, Vorgang nach 30 Sekunden beendet."; nfc.err = true;
+    }).then(function () {
+      clearTimeout(timer);
+      nfc.writing = false;
+      render();
+    });
+  }
+
+  /* ---------- Ereignisse ---------- */
+  document.addEventListener("click", function (ev) {
+    var el = ev.target.closest("[data-act]");
+    if (!el) return;
+    var act = el.dataset.act;
+    if (act !== "reset") ui.resetArmed = false;
+    if (act === "tap") { tap({ uid: el.dataset.uid, source: el.dataset.source }); return; }
+    if (act === "newtag") {
+      var uid = randomUid();
+      tap({ uid: uid, source: "demo" });
+      return;
+    }
+    if (act === "chip") { S.chip = el.dataset.chip; ui.result = null; ui.pending = null; }
+    if (act === "topup") {
+      var p = byId(S.people, el.dataset.person);
+      p.balance += 1000;
+      S.log.unshift({ at: Date.now(), kind: "ok", text: p.name + ": 10,00 € aufgeladen (simuliert)" });
+    }
+    if (act === "pickup") { byId(S.found, el.dataset.found).done = true; }
+    if (act === "scan") {
+      if (nfc.scanning) { stopScan(); nfc.msg = ""; render(); return; }
+      startScan();
+      return;
+    }
+    if (act === "write") { nfc.confirmWrite = true; }
+    if (act === "write-no") { nfc.confirmWrite = false; }
+    if (act === "write-go") { writeTag(); return; }
+    if (act === "reset") {
+      if (!ui.resetArmed) { ui.resetArmed = true; render(); return; }
+      S = seed(); ui.result = null; ui.pending = null; ui.resetArmed = false; ui.query = "";
+    }
+    save();
+    render();
+  });
+
+  document.addEventListener("change", function (ev) {
+    var d = ev.target.dataset;
+    if (d.cart) S.cart[d.cart] = ev.target.checked;
+    else if (d.book) S.book = d.book;
+    else if (d.room) { S.room = d.room; ui.doorOpen = false; }
+    else if (d.event) S.event = d.event;
+    else if (d.set) { (byId(S.people, S.profile) || S.people[0])[d.set] = ev.target.checked; }
+    else return;
+    save();
+    render();
+  });
+
+  document.addEventListener("input", function (ev) {
+    if (ev.target.id !== "find-q") return;
+    ui.query = ev.target.value;
+    var q = ui.query.toLowerCase();
+    $("find-list").innerHTML = findRows(S.found.filter(function (f) { return (f.what + " " + f.where).toLowerCase().indexOf(q) !== -1; }));
+  });
+
+  document.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (ev.target.id === "find-form") {
+      var what = $("find-what").value.trim(), where = $("find-where").value.trim();
+      if (!what || !where) return;
+      S.found.unshift({ id: "f" + Date.now(), what: what, where: where, done: false });
+      S.log.unshift({ at: Date.now(), kind: "ok", text: "Fund gemeldet: " + what });
+    }
+    if (ev.target.id === "assign-form") {
+      if (!ui.pending) return;
+      var id = $("assign-person").value;
+      if (!id) {
+        var name = $("assign-name").value.trim();
+        if (!name) { $("assign-name").focus(); return; }
+        id = "p" + (S.seq++);
+        S.people.push({ id: id, name: name, cls: "Beispielperson", balance: 1000, rooms: ["r004"], contact: true, notify: true });
+        S.counters[id] = 0;
+      }
+      S.tags[ui.pending.uid] = id;
+      var person = byId(S.people, id);
+      if (ui.pending.source === "demo") S.custom.push(ui.pending.uid);
+      S.log.unshift({ at: Date.now(), kind: "ok", text: "Tag zugeordnet: " + person.name });
+      ui.result = { kind: "ok", title: "Tag gehört jetzt " + person.name, detail: "Tippe ihn noch einmal an, um die Station zu nutzen.", tech: "ID " + ui.pending.uid };
+      ui.pending = null;
+    }
+    save();
+    render();
+  });
+
+  function route() {
+    var h = location.hash.replace("#", "");
+    if (MODULES.some(function (m) { return m[0] === h; })) {
+      if (ui.module !== h) { ui.module = h; ui.result = null; ui.pending = null; ui.doorOpen = false; }
+      render();
+    }
+  }
+  window.addEventListener("hashchange", route);
+
+  /* Tag mit Link: Handy oeffnet die App mit ?tag=..., auch auf dem iPhone */
+  var linked = null;
+  try { linked = new URLSearchParams(location.search).get("tag"); } catch (e) { linked = null; }
+  if (location.hash) route(); else if (linked) ui.module = "profile";
+  render();
+  if (linked) tap({ uid: "link:" + linked.slice(0, 64), source: "link" });
+})();
+</script>
+</body>
+</html>
