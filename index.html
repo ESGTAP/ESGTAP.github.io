@@ -3,8 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ESG TAP</title>
-<meta name="description" content="ESG TAP: ein NFC-Anhänger für Mensa, Bibliothek, Fundbüro, Veranstaltungen und Räume am Erwin-Strittmatter-Gymnasium Spremberg.">
+<title>ESG TAP: NFC-Anhänger für das Erwin-Strittmatter-Gymnasium</title>
+<meta name="description" content="ESG TAP: ein NFC-Anhänger für Mensa, Bibliothek, Fundbüro, Veranstaltungen und Räume am Erwin-Strittmatter-Gymnasium Spremberg. Die Schülerfirma sucht Partner in Spremberg.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://esgtap.github.io/">
+<meta property="og:title" content="ESG TAP: NFC-Anhänger für das Erwin-Strittmatter-Gymnasium">
+<meta property="og:description" content="Die Schülerfirma des Gymnasiums Spremberg sucht Betriebe, die mitmachen. Mit Simulation zum Ausprobieren.">
+<meta property="og:locale" content="de_DE">
+<meta name="theme-color" content="#f8f8f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3fa6'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
 <style>
 /* Schriften liegen lokal im Ordner fonts/ (SIL Open Font License, siehe fonts/OFL.txt). Keine Anfrage an Google. */
 @font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Barlow-400.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -72,10 +80,12 @@ strong { font-weight: 600; }
 /* Kopfzeile */
 .top { border-bottom: 1px solid var(--rule); }
 .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.9rem; }
-.brand { font: 700 1.35rem/1 var(--f-sign); color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.02em; }
+.skip { position: absolute; left: 16px; top: -4rem; z-index: 10; padding: 0.7rem 1rem; background: var(--pen); color: var(--paper); }
+.skip:focus { top: 0.5rem; }
+.brand { font: 700 1.35rem/1 var(--f-sign); color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.02em; min-height: 44px; }
 .brand::before { content: ""; width: 0.8rem; height: 0.8rem; border: 2.5px solid currentColor; border-radius: 50%; }
-.top nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: 0.95rem; }
-.top nav a { color: var(--muted); text-decoration: none; }
+.top nav { display: flex; flex-wrap: wrap; gap: 0 1.25rem; font-size: 0.95rem; }
+.top nav a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 .top nav a:hover { color: var(--ink); text-decoration: underline; }
 @media (max-width: 640px) { .top .wrap { flex-direction: column; align-items: flex-start; gap: 0.5rem; } }
 
@@ -93,33 +103,38 @@ strong { font-weight: 600; }
 .intro h1 { font-size: clamp(4rem, 12vw, 7.5rem); line-height: 0.85; letter-spacing: -0.01em; }
 .intro .sub { font-size: 1.2rem; max-width: 30rem; }
 .intro .who { color: var(--muted); font-size: 0.95rem; }
-.tag-photo { display: block; width: 100%; max-width: 26rem; height: auto; border: 1.5px solid var(--ink); }
+.cta { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0.6rem 1rem; background: var(--pen); color: var(--paper); border-radius: 3px; font: 600 1.15rem/1.15 var(--f-sign); letter-spacing: 0.02em; text-decoration: none; }
+.cta:hover { background: var(--ink); }
+.status { display: flex; align-items: center; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--rule); max-width: 30rem; font-size: 0.95rem; }
+.status svg { flex: none; width: 4.4rem; height: 5.5rem; }
 /* Ausprobieren: Lesegerät mit LCD, ziehbarer Anhänger, Protokoll daneben */
 .try { display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
 .try-side { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 .stations { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .station {
   font: 600 1.05rem/1 var(--f-sign); letter-spacing: 0.02em;
-  padding: 0.6rem 0.9rem; cursor: pointer;
+  padding: 0.6rem 0.9rem; min-height: 44px; cursor: pointer;
   background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 3px;
 }
 .station:hover { background: var(--grid); }
 .station[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .log { margin: 0; padding: 0; list-style: none; border-top: 1.5px solid var(--ink); }
-.log li { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
+.log li { font-variant-numeric: tabular-nums; display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
 .log li span:first-child { font: 700 1rem/1.5 var(--f-sign); color: var(--muted); }
 .log li.done { color: var(--ink); }
 .log li.done span:first-child { color: var(--pen); }
 .log li.bad { color: var(--bad); }
-.try-note { font-size: 0.92rem; color: var(--muted); }
-.refill { align-self: flex-start; font: 500 0.95rem/1 var(--f-text); background: none; border: 0; padding: 0; color: var(--pen); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.try-more { font-size: 0.95rem; }
+.data-note { display: flex; flex-direction: column; gap: 0.5rem; }
+.refill { position: absolute; left: 1rem; bottom: 3.6rem; z-index: 3; min-height: 44px; font: 600 0.95rem/1 var(--f-text); background: none; border: 0; padding: 0; color: var(--pen); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
 .stage {
   position: relative; min-height: 22rem; min-width: 0;
   border: 1.5px solid var(--ink); background: var(--paper);
-  touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden;
+  user-select: none; -webkit-user-select: none; overflow: hidden;
 }
 .stage-place { position: absolute; top: 0.75rem; left: 1rem; font: 700 1.3rem/1 var(--f-sign); }
+.stage-bal { position: absolute; top: 0.8rem; right: 1rem; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stage-hint { position: absolute; left: 1rem; bottom: 0.75rem; right: 1rem; font-size: 0.85rem; color: var(--muted); }
 .reader {
   position: absolute; right: 12%; top: 50%; translate: 0 -50%;
@@ -140,7 +155,7 @@ strong { font-weight: 600; }
   position: relative; width: 100%; min-height: 4.8rem; padding: 0.55rem 0.65rem; border-radius: 5px;
   background: linear-gradient(180deg, #d3dcc8, var(--lcd) 60%, #bcc7b0);
   color: var(--lcd-ink);
-  font: 600 0.95rem/1.25 var(--f-sign); letter-spacing: 0.01em;
+  font: 600 0.95rem/1.25 var(--f-sign); letter-spacing: 0.01em; font-variant-numeric: tabular-nums;
   display: flex; flex-direction: column; justify-content: center;
   border: 4px solid #121315;
   box-shadow: 0 0 0 1px rgba(255,255,255,.07), inset 0 2px 5px rgba(0,0,0,.35);
@@ -175,7 +190,7 @@ strong { font-weight: 600; }
 .tag {
   position: absolute; left: 12%; top: 50%;
   width: 6.4rem; height: 8rem; margin-top: -5.2rem;
-  background: none; border: 0; padding: 0; cursor: grab;
+  background: none; border: 0; padding: 0; cursor: grab; touch-action: none;
   filter: drop-shadow(0 4px 3px rgba(0,0,0,.28)) drop-shadow(0 10px 14px rgba(0,0,0,.22));
   transition: transform .45s cubic-bezier(.3,1.3,.5,1), filter .2s;
   z-index: 2; -webkit-tap-highlight-color: transparent;
@@ -206,6 +221,11 @@ strong { font-weight: 600; }
 }
 
 /* Abschnitte */
+section.part.ruled {
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-block: 1px solid var(--rule);
+}
 section.part .wrap { padding-block: clamp(3rem, 7vw, 5rem); display: flex; flex-direction: column; gap: 1.75rem; }
 
 /* Tabellen */
@@ -216,9 +236,9 @@ section.part .wrap { padding-block: clamp(3rem, 7vw, 5rem); display: flex; flex-
 .list td:first-child { font: 700 1.2rem/1.3 var(--f-sign); white-space: nowrap; }
 .list td:last-child { color: var(--muted); }
 @media (max-width: 640px) {
-  .list.modules thead { display: none; }
-  .list.modules tr { display: block; padding-block: 0.8rem; border-bottom: 1px solid var(--rule); }
-  .list.modules td { display: block; padding: 0.1rem 0; border: 0; }
+  .list.stack thead { display: none; }
+  .list.stack tr { display: block; padding-block: 0.8rem; border-bottom: 1px solid var(--rule); }
+  .list.stack td { display: block; padding: 0.1rem 0; border: 0; white-space: normal; }
 }
 
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
@@ -230,15 +250,18 @@ section.part .wrap { padding-block: clamp(3rem, 7vw, 5rem); display: flex; flex-
 .steps li::marker { font: 700 1.2rem var(--f-sign); color: var(--pen); }
 
 /* Kontakt */
-.contact .wrap { padding-block: clamp(3rem, 7vw, 5rem); border-top: 1.5px solid var(--ink); display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.contact { border-top: 1.5px solid var(--ink); }
+.contact .wrap { padding-block: clamp(3rem, 7vw, 5rem); display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 .contact address { font-style: normal; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
-.contact address a { word-break: break-word; }
+.contact address a { word-break: break-word; display: inline-flex; align-items: center; min-height: 44px; }
 @media (max-width: 720px) { .contact .wrap { grid-template-columns: 1fr; } }
 
 footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; }
 </style>
 </head>
 <body>
+
+<a class="skip" href="#inhalt">Zum Inhalt springen</a>
 
 <header class="top">
   <div class="wrap">
@@ -256,20 +279,23 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
   </div>
 </header>
 
-<main>
+<main id="inhalt">
 
 <div class="sheet">
   <div class="wrap">
     <div class="intro">
       <h1>ESG TAP</h1>
-      <p class="sub">Ein NFC-Anhänger für den Schlüsselbund. Damit bezahlst du in der Mensa und schließt Raum&nbsp;004 auf, ohne erst den Hausmeister zu suchen.</p>
+      <p class="sub">Ein NFC-Anhänger für den Schlüsselbund. Damit sollst du in der Mensa bezahlen und Raum&nbsp;004 aufschließen können, ohne erst den Hausmeister zu suchen.</p>
       <p class="who">Eine Idee der Schülerfirma am Erwin-Strittmatter-Gymnasium Spremberg.</p>
-      <!-- Bild: durch ein eigenes Foto der echten Anhänger ersetzen (gleicher Dateiname, Querformat). -->
-      <img class="tag-photo" src="bilder/anhaenger.jpg" width="400" height="212" alt="Zwei ESG-TAP-Anhänger am Schlüsselring, einer schwarz mit ESG-Logo, einer weiß">
+      <a class="cta" href="#partner">Betrieb in Spremberg? So könnt ihr mitmachen</a>
+      <p class="status">
+        <svg viewBox="0 0 120 150" aria-hidden="true" focusable="false"><use href="#tag-art"/></svg>
+        <span><strong>Stand: Prototyp.</strong> An der Schule getestet ist noch nichts, Preise und Termine stehen noch nicht fest. <a href="prototyp/">Prototyp ansehen</a></span>
+      </p>
     </div>
 
     <div class="day">
-      <div class="day-head"><strong>Ein Dienstag mit ESG TAP</strong><span>Beispiel</span></div>
+      <div class="day-head"><strong>Ein Dienstag mit ESG TAP</strong><span>So könnte es aussehen</span></div>
       <div class="table-scroll">
         <table>
           <tbody>
@@ -298,13 +324,17 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
           <li><span>3</span><span>Lesegerät zeigt das Ergebnis</span></li>
         </ol>
         <p class="sr-only" id="sr" aria-live="polite"></p>
-        <button class="refill" type="button" id="refill" hidden>10 € Guthaben aufladen</button>
-        <p class="try-note">Auf dem Anhänger selbst steht nur eine Nummer. Name, Guthaben und Rechte liegen auf der Plattform der Schule. Geht der Anhänger verloren, wird er dort gesperrt.</p>
+        <div class="data-note">
+          <h3>Welche Daten wo liegen</h3>
+          <p>Auf dem Anhänger selbst soll nur eine Nummer stehen. Name, Guthaben und Rechte sollen auf der Plattform der Schule liegen. Geht der Anhänger verloren, wird er dort gesperrt.</p>
+        </div>
+        <p class="try-more">Für die echten Lesegeräte suchen wir noch Sponsoren. <a href="#partner">So könnt ihr mitmachen</a></p>
       </div>
       <div class="stage" id="stage">
         <span class="stage-place" id="place">Mensa-Kasse</span>
+        <span class="stage-bal" id="bal"></span>
         <div class="reader" id="reader">
-          <div class="lcd" id="lcd">Anhänger<br>hinhalten</div>
+          <div class="lcd" id="lcd">Anhänger<small>hinhalten</small></div>
           <div class="pad" id="pad">
             <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
               <g fill="none" stroke="#8d9098" stroke-width="2.6" stroke-linecap="round">
@@ -338,6 +368,7 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
                 <rect width="120" height="150" fill="#fff"/><circle cx="60" cy="44" r="4.6" fill="#000"/>
               </mask>
             </defs>
+            <g id="tag-art">
             <!-- Schlüsselring, hinterer Teil -->
             <g fill="none" stroke="url(#tg-metal)" stroke-width="3.6">
               <circle cx="60" cy="27" r="18"/>
@@ -355,11 +386,12 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
             <path d="M61.5 44.4A18 18 0 0 0 72.4 40.4" fill="none" stroke="url(#tg-metal)" stroke-width="3.6" stroke-opacity=".8"/>
             <!-- Aufdruck -->
             <g fill="#a8acb3" opacity=".9">
-              <path d="M60 70c.5 4.6 3.9 8 8.5 8.5-4.6.5-8 3.9-8.5 8.5-.5-4.6-3.9-8-8.5-8.5 4.6-.5 8-3.9 8.5-8.5z"/>
-              <text x="60" y="112" text-anchor="middle" font-family="Barlow, Arial, sans-serif" font-weight="600" font-size="24" letter-spacing=".5">ESG</text>
+              <text x="60" y="104" text-anchor="middle" font-family="Barlow, Arial, sans-serif" font-weight="600" font-size="24" letter-spacing=".5">ESG</text>
+            </g>
             </g>
           </svg>
         </button>
+        <button class="refill" type="button" id="refill" hidden>10 € aufladen</button>
         <span class="stage-hint">Alles hier ist eine Simulation mit Beispieldaten.</span>
       </div>
     </div>
@@ -370,7 +402,7 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
   <div class="wrap">
     <h2>Warum wir das machen</h2>
     <div class="prose">
-      <p>In der großen Pause steht die halbe Schule in der Mensa an, und vorne sucht jemand nach Kleingeld. Die Fundkiste ist voll mit Jacken, aber wer etwas vermisst, muss selbst hingehen und suchen. Bei Veranstaltungen wird die Anwesenheit auf Papier abgehakt. Und wenn der Schlüssel für Raum 004 gerade bei jemand anderem ist, steht die AG eben vor der Tür.</p>
+      <p>In der großen Pause steht die halbe Schule in der Mensa an und vorne sucht jemand nach Kleingeld. Die Fundkiste ist voll mit Jacken, aber wer etwas vermisst, muss selbst hingehen und suchen. Bei Veranstaltungen wird die Anwesenheit auf Papier abgehakt. Und wenn der Schlüssel für Raum 004 gerade bei jemand anderem ist, steht die AG eben vor der Tür.</p>
       <p>Für die meisten dieser Sachen reicht ein Anhänger am Schlüsselbund, wenn die Schule die passenden Lesegeräte hat.</p>
     </div>
   </div>
@@ -378,12 +410,12 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
 
 <section class="part" id="module">
   <div class="wrap">
-    <h2>Was der Anhänger kann</h2>
+    <h2>Was der Anhänger können soll</h2>
     <div class="prose">
-      <p>Wir haben die Ideen aus unserer Klasse gesammelt und auf sieben Module verteilt. Alle laufen über dieselbe Plattform. Die Schule entscheidet selbst, welche sie einschaltet, und kann auch erst mal mit einem anfangen.</p>
+      <p>Wir haben die Ideen aus unserer Klasse gesammelt und auf sieben Module verteilt. Alle sollen über dieselbe Plattform laufen. Die Schule entscheidet selbst, welche sie einschaltet. Sie kann auch erst mal mit einem anfangen.</p>
     </div>
     <div class="table-scroll">
-      <table class="list modules">
+      <table class="list stack">
         <thead><tr><th>Modul</th><th>Was es macht</th><th>Wo</th></tr></thead>
         <tbody>
           <tr><td>PAY</td><td>In der Mensa bezahlen, mit vorher aufgeladenem Guthaben.</td><td>Mensa</td></tr>
@@ -403,13 +435,13 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
       </div>
       <div>
         <h3>Was anders ist</h3>
-        <p>Bezahlsysteme für Mensen gibt es schon, Ausleihsysteme für Bibliotheken auch. Bei uns läuft beides und noch mehr über denselben Anhänger. Und wir gehen selbst aufs ESG, wir wissen also, wo es im Alltag hakt.</p>
+        <p>Bezahlsysteme für Mensen gibt es schon, Ausleihsysteme für Bibliotheken auch. Bei uns soll beides und noch mehr über denselben Anhänger laufen. Und wir gehen selbst aufs ESG, wir wissen also, wo es im Alltag hakt.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="part" id="partner">
+<section class="part ruled" id="partner">
   <div class="wrap">
     <h2>Wir suchen Partner in Spremberg</h2>
     <div class="prose">
@@ -418,24 +450,28 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
     <div class="cols">
       <div>
         <h3>Was Partner davon haben</h3>
-        <p>Schüler und Eltern am ESG lernen euren Betrieb kennen, und ihr könnt Rabatte direkt in der App anbieten. Viele von uns suchen in ein, zwei Jahren einen Ausbildungsplatz.</p>
+        <p>Schülerinnen, Schüler und Eltern am ESG lernen euren Betrieb kennen. Außerdem könnt ihr Rabatte direkt in der App anbieten. Viele von uns suchen in ein, zwei Jahren einen Ausbildungsplatz.</p>
       </div>
       <div>
         <h3>Wie das konkret aussehen kann</h3>
         <p>Ein Betrieb bezahlt zum Beispiel die Lesegeräte und steht dafür mit seinem Logo in der App. Die Anhänger und die Technik würden wir am liebsten in der Region kaufen. Bei Datenschutz und Technik freuen wir uns über jemanden, der sich auskennt.</p>
       </div>
     </div>
+    <a class="cta" href="mailto:schuelerfirma.esg@web.de?subject=ESG%20TAP%3A%20Unser%20Betrieb%20m%C3%B6chte%20mitmachen">Schreibt uns eine Mail</a>
   </div>
 </section>
 
 <section class="part" id="kosten">
   <div class="wrap">
-    <h2>Was es kostet</h2>
+    <h2>Wer was bezahlen soll</h2>
+    <div class="prose">
+      <p>Beträge haben wir noch keine. Bisher ist nur geplant, wer welchen Posten übernehmen könnte.</p>
+    </div>
     <div class="table-scroll">
-      <table class="list">
-        <thead><tr><th>Posten</th><th>Wofür</th><th>Wer zahlt</th></tr></thead>
+      <table class="list stack">
+        <thead><tr><th>Posten</th><th>Wofür</th><th>Wer zahlen soll</th></tr></thead>
         <tbody>
-          <tr><td>NFC-Anhänger</td><td>Einer pro Person, in Schwarz, Weiß oder einer Schulfarbe</td><td>Verkauf an Schüler, Sponsoren</td></tr>
+          <tr><td>NFC-Anhänger</td><td>Einer pro Person, in Schwarz, Weiß oder einer Schulfarbe</td><td>Verkauf an Schülerinnen und Schüler, Sponsoren</td></tr>
           <tr><td>Lesegeräte</td><td>An der Mensa-Kasse, in der Bibliothek und an Raumtüren</td><td>Sponsoren, Schule, Stadt</td></tr>
           <tr><td>Plattform</td><td>App und Verwaltung für alle Module</td><td>Partnerangebote, Sponsoring</td></tr>
         </tbody>
@@ -447,6 +483,9 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
 <section class="part" id="plan">
   <div class="wrap">
     <h2>Wie es weitergeht</h2>
+    <div class="prose">
+      <p>Termine stehen noch nicht fest. Die Reihenfolge schon:</p>
+    </div>
     <ol class="steps">
       <li>Wir testen erst ein Modul, zum Beispiel ACCESS für Raum 004 oder TIME beim nächsten Schulfest.</li>
       <li>Parallel sprechen wir Betriebe in Spremberg und die Stadt an, damit Anhänger und Lesegeräte bezahlt sind.</li>
@@ -455,23 +494,24 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
   </div>
 </section>
 
-</main>
-
 <section class="contact" id="kontakt">
   <div class="wrap">
     <div class="prose">
       <h2>Kontakt</h2>
-      <p>Wenn ihr einen Betrieb in Spremberg habt und mitmachen wollt, schreibt uns. Wir kommen auch gern vorbei und zeigen den Anhänger.</p>
+      <p>Wenn ihr einen Betrieb in Spremberg habt und mitmachen wollt, schreibt uns. Wir kommen auch gern vorbei und zeigen den Prototyp.</p>
+      <p>Eltern und Lehrkräfte erreichen uns unter derselben Adresse, auch mit Fragen zum Datenschutz. Und wer am ESG zur Schule geht und eine Idee für ein Modul hat, kann uns genauso schreiben.</p>
     </div>
     <address>
       <strong>ESG Student Company</strong>
       <span>Mittelstraße 1</span>
       <span>03130 Spremberg</span>
-      <span>Telefon: +49 (0) 3563 2038</span>
+      <a href="tel:+4935632038">Telefon: +49 (0) 3563 2038</a>
       <a href="mailto:schuelerfirma.esg@web.de">schuelerfirma.esg@web.de</a>
     </address>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -507,10 +547,9 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
       } },
     { id: "aula", name: "Aula", ask: "Ist Nr. 0417 schon eingecheckt?", run: function () {
         state.aula = !state.aula;
-        var t = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
         return state.aula
-          ? { ok: true, lcd: "Eingecheckt", sub: "Schulkonzert, " + t, log: "Eingecheckt um " + t }
-          : { ok: true, lcd: "Ausgecheckt", sub: "Bis bald!", log: "Ausgecheckt um " + t };
+          ? { ok: true, lcd: "Eingecheckt", sub: "Schulkonzert", log: "Beim Schulkonzert eingecheckt" }
+          : { ok: true, lcd: "Ausgecheckt", sub: "Bis bald!", log: "Beim Schulkonzert ausgecheckt" };
       } }
   ];
   var current = stations[0];
@@ -530,6 +569,8 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
       items[i].lastChild.textContent = l ? l.text : ["Lesegerät erkennt den Anhänger", "Plattform prüft, was erlaubt ist", "Lesegerät zeigt das Ergebnis"][i];
     });
   }
+  function showBalance() { $("bal").textContent = current.id === "mensa" ? "Guthaben: " + euro(state.balance) : ""; }
+  function offerRefill() { refill.hidden = !(current.id === "mensa" && state.balance < 1.2); }
   function resetView() {
     reader.classList.remove("ok", "no");
     setLcd("Anhänger", "hinhalten");
@@ -549,7 +590,8 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
       current = st;
       document.querySelectorAll(".station").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
       $("place").textContent = st.name;
-      refill.hidden = true;
+      offerRefill();
+      showBalance();
       resetView();
     });
     $("stations").appendChild(b);
@@ -569,16 +611,18 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
     refill.hidden = true;
     var o = padOffset(); moveTag(o.x, o.y);
     resetView();
-    var r = current.run();
+    var r;
     var steps = [
       function () { setLog([{ cls: "done", text: "Anhänger Nr. 0417 erkannt" }, null, null]); setLcd("Moment …"); },
       function () { setLog([{ cls: "done", text: "Anhänger Nr. 0417 erkannt" }, { cls: "done", text: "Plattform: " + current.ask }, null]); },
       function () {
+        r = current.run();
+        showBalance();
         setLog([{ cls: "done", text: "Anhänger Nr. 0417 erkannt" }, { cls: "done", text: "Plattform: " + current.ask }, { cls: r.ok ? "done" : "bad", text: r.log }]);
         reader.classList.add(r.ok ? "ok" : "no");
         setLcd(r.lcd, r.sub);
         $("sr").textContent = current.name + ": " + r.log;
-        refill.hidden = !(current.id === "mensa" && state.balance < 1.2);
+        offerRefill();
       },
       function () { moveTag(0, 0); timers.push(setTimeout(function () { busy = false; }, 460)); }
     ];
@@ -587,15 +631,21 @@ footer .wrap { padding-block: 1.25rem 2rem; color: var(--muted); font-size: 0.85
   }
 
   refill.addEventListener("click", function () {
-    if (busy) return;
-    state.balance += 10; refill.hidden = true;
+    state.balance = Math.round((state.balance + 10) * 100) / 100;
+    refill.hidden = true;
+    showBalance();
+    setLog([null, null, null]);
+    reader.classList.remove("ok", "no");
     setLcd("Aufgeladen", "Guthaben: " + euro(state.balance));
-    reader.classList.remove("no");
+    $("sr").textContent = "Aufgeladen, Guthaben " + euro(state.balance);
+    tag.focus({ preventScroll: true });
   });
+  showBalance();
 
   // Ziehen mit Maus, Finger oder Stift. Ein Klick ohne Ziehen zählt als Antippen.
   var drag = null, justDragged = false;
   tag.addEventListener("pointerdown", function (e) {
+    justDragged = false;
     if (busy) return;
     drag = { sx: e.clientX, sy: e.clientY, moved: false };
     tag.setPointerCapture(e.pointerId);
