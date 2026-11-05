@@ -821,6 +821,11 @@ footer p { max-width: 44rem; }
   if (isModule(startHash)) ui.module = startHash;
   else if (isModule(S.module)) ui.module = S.module;
   else if (linked) ui.module = "profile";
+  /* Auch das beim Start sichtbare Modul merken: Der erste Tag-Tap kommt oft ohne vorherigen Klick */
+  if (S.module !== ui.module) { S.module = ui.module; save(); }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && S.module !== ui.module) { S.module = ui.module; save(); }
+  });
   if (linked) {
     /* Link aus der Adresse nehmen, sonst bucht jedes Neuladen noch einmal ab */
     try { history.replaceState(null, "", location.pathname + "#" + ui.module); } catch (e) { /* dann bleibt die Adresse stehen */ }
