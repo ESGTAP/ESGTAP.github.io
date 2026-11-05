@@ -150,6 +150,8 @@ details ul { margin: .5rem 0 .25rem; padding-left: 1.2rem; }
 .nfc-msg { font-size: .92rem; }
 .nfc-msg.err { color: var(--bad); }
 .nfc p.small { font-size: .9rem; color: var(--muted); }
+.howto { margin: 0; padding-left: 1.2rem; font-size: .95rem; display: grid; gap: .2rem; }
+.linkbox { display: block; font: 400 .85rem/1.4 var(--f-text); padding: .45rem .6rem; border: 1.5px solid var(--ink); border-radius: 3px; overflow-wrap: anywhere; -webkit-user-select: all; user-select: all; }
 
 .log { display: grid; border-top: 1.5px solid var(--ink); }
 .log div.item { display: grid; grid-template-columns: 2.9rem minmax(0, 1fr) auto; gap: .5rem; align-items: baseline; padding: .45rem 0; border-bottom: 1px solid var(--rule); font-size: .92rem; }
@@ -578,6 +580,11 @@ footer p { max-width: 44rem; }
       '<div><button class="btn primary" type="submit">Tag zuordnen</button></div></form>';
   }
 
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function tagUrl(id) { return location.origin + location.pathname + "?tag=" + id; }
+
   function nfcSupport() {
     if (!("NDEFReader" in window)) return "none";
     var framed = false;
@@ -598,7 +605,16 @@ footer p { max-width: 44rem; }
     } else if (mode === "framed") {
       html += '<p class="small">Dieser Browser kann NFC, die eingebettete Ansicht blockiert es aber. Öffne die App auf ihrer eigenen Adresse.</p>';
     } else {
-      html += '<p class="small">Dieser Browser kann NFC nicht direkt lesen. Das geht nur mit Chrome auf Android. Auf dem iPhone funktioniert ein Tag, auf dem ein Link zu dieser App steht. Die Simulation oben läuft überall.</p>';
+      if (isIOS()) {
+        html += '<ol class="howto"><li>Oben ein Modul wählen, zum Beispiel PAY.</li><li>Tag an die obere Kante des iPhones halten.</li><li>Die Meldung antippen. Der Tap wird dann in diesem Modul ausgeführt.</li></ol>';
+      } else {
+        html += '<p class="small">Dieser Browser kann NFC nicht direkt lesen. Das geht nur mit Chrome auf Android. Auf dem iPhone funktioniert ein Tag, auf dem ein Link zu dieser Seite steht.</p>';
+      }
+      if (!S.linkId) { S.linkId = hex(8); save(); }
+      html += '<p class="small">Der Tag braucht dafür einmal einen eigenen Link. Schreib ihn mit einer App wie NFC Tools als URL auf den Tag. Für jeden Tag gibt es einen neuen Link.</p>' +
+        '<code class="linkbox" id="tag-link">' + esc(tagUrl(S.linkId)) + "</code>" +
+        '<div class="nfc-actions"><button type="button" class="btn" data-act="copy-link">Link kopieren</button><button type="button" class="btn" data-act="new-link">Neuer Link</button></div>';
+      if (ui.copied) html += '<p class="nfc-msg" role="status">' + esc(ui.copied) + "</p>";
     }
     if (nfc.msg) html += '<p class="nfc-msg' + (nfc.err ? " err" : "") + '" role="status">' + esc(nfc.msg) + "</p>";
     $("nfc").innerHTML = html;
@@ -667,7 +683,7 @@ footer p { max-width: 44rem; }
     render();
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 30000);
-    var url = location.origin + location.pathname + "?tag=" + hex(8);
+    var url = tagUrl(hex(8));
     new NDEFReader().write({ records: [{ recordType: "url", data: url }] }, { signal: ctrl.signal }).then(function () {
       nfc.msg = "Tag beschrieben. Er öffnet jetzt diese App, auch auf dem iPhone."; nfc.err = false;
     }).catch(function (e) {
@@ -703,12 +719,27 @@ footer p { max-width: 44rem; }
       startScan();
       return;
     }
+    if (act === "new-link") { S.linkId = hex(8); ui.copied = ""; }
+    if (act === "copy-link") {
+      var link = tagUrl(S.linkId);
+      var selectLink = function () {
+        ui.copied = "Kopieren ging nicht. Der Link ist markiert, kopiere ihn von Hand.";
+        render();
+        window.getSelection().selectAllChildren($("tag-link"));
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(function () { ui.copied = "Link kopiert."; render(); }, selectLink);
+      } else {
+        selectLink();
+      }
+      return;
+    }
     if (act === "write") { nfc.confirmWrite = true; }
     if (act === "write-no") { nfc.confirmWrite = false; }
     if (act === "write-go") { writeTag(); return; }
     if (act === "reset") {
       if (!ui.resetArmed) { ui.resetArmed = true; render(); return; }
-      S = seed(); ui.result = null; ui.pending = null; ui.resetArmed = false; ui.query = "";
+      S = seed(); S.module = ui.module; ui.result = null; ui.pending = null; ui.resetArmed = false; ui.query = ""; ui.copied = "";
     }
     save();
     render();
@@ -755,10 +786,20 @@ footer p { max-width: 44rem; }
       var person = byId(S.people, id);
       if (ui.pending.source === "demo") S.custom.push(ui.pending.uid);
       S.log.unshift({ at: Date.now(), kind: "ok", text: "Tag zugeordnet: " + person.name });
-      ui.result = { kind: "ok", title: "Tag gehört jetzt " + person.name, detail: "Tippe ihn noch einmal an, um die Station zu nutzen.", tech: "ID " + ui.pending.uid };
+      ui.result = { kind: "ok", title: "Tag gehört jetzt " + person.name, detail: ui.pending.source === "demo" ? "Tippe ihn noch einmal an, um die Station zu nutzen." : "Halte ihn noch einmal ans Handy, um die Station zu nutzen.", tech: "ID " + ui.pending.uid };
       ui.pending = null;
     }
     save();
+    render();
+  });
+
+  function isModule(id) { return MODULES.some(function (m) { return m[0] === id; }); }
+
+  /* Das iPhone oeffnet jeden Tag-Link oft in einem neuen Tab: alle Tabs auf gleichem Stand halten */
+  window.addEventListener("storage", function (ev) {
+    if (ev.key !== STORE || !ev.newValue) return;
+    try { S = JSON.parse(ev.newValue); } catch (e) { return; }
+    ui.result = null; ui.pending = null;
     render();
   });
 
@@ -766,6 +807,8 @@ footer p { max-width: 44rem; }
     var h = location.hash.replace("#", "");
     if (MODULES.some(function (m) { return m[0] === h; })) {
       if (ui.module !== h) { ui.module = h; ui.result = null; ui.pending = null; ui.doorOpen = false; }
+      S.module = h;
+      save();
       render();
     }
   }
@@ -774,7 +817,14 @@ footer p { max-width: 44rem; }
   /* Tag mit Link: Handy oeffnet die App mit ?tag=..., auch auf dem iPhone */
   var linked = null;
   try { linked = new URLSearchParams(location.search).get("tag"); } catch (e) { linked = null; }
-  if (location.hash) route(); else if (linked) ui.module = "profile";
+  var startHash = location.hash.replace("#", "");
+  if (isModule(startHash)) ui.module = startHash;
+  else if (isModule(S.module)) ui.module = S.module;
+  else if (linked) ui.module = "profile";
+  if (linked) {
+    /* Link aus der Adresse nehmen, sonst bucht jedes Neuladen noch einmal ab */
+    try { history.replaceState(null, "", location.pathname + "#" + ui.module); } catch (e) { /* dann bleibt die Adresse stehen */ }
+  }
   render();
   if (linked) tap({ uid: "link:" + linked.slice(0, 64), source: "link" });
 })();
